@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 
 const bodyParser = require('body-parser');
@@ -13,6 +14,8 @@ require('dotenv').config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
 app.use(bodyParser.json()); // Content-Type: application/json
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // CORS
 app.use((req, res, next) => {
