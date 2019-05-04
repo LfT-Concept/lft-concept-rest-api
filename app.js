@@ -27,6 +27,15 @@ app.use((req, res, next) => {
 
 app.use('/feed', feedRoutes);
 
+// General error handling middleware
+// It will be called when an error is thrown or when next(err) is invoked
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode;
+  const message = error.message;
+  res.status(error.statusCode).json({ message: message });
+});
+
 app.use('/', (req, res, next) => {
   res.status(200).send("<h1>Lft Concept REST API</h1>").end();
 });
