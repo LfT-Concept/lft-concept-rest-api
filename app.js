@@ -2,9 +2,14 @@ const express = require('express');
 
 const bodyParser = require('body-parser');
 
+const mongoose = require('mongoose');
+
 const feedRoutes = require('./routes/feed');
 
 const app = express();
+
+// Load env config
+require('dotenv').config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
 app.use(bodyParser.json()); // Content-Type: application/json
@@ -23,4 +28,9 @@ app.use('/', (req, res, next) => {
   res.status(200).send("<h1>Lft Concept REST API</h1>").end();
 });
 
-app.listen(process.env.PORT || 8080);
+mongoose
+  .connect(process.env.MONGODB_CONN_STR)
+  .then(result => {
+    app.listen(process.env.PORT || 8080);
+  })
+  .catch(err => console.log(err));
