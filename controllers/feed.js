@@ -62,12 +62,12 @@ exports.getPost = (req, res, next) => {
         throw error; // this will be caught in the catch block which will pass it on to next error handling middleware using next(err)
       }
 
-      req.status(200).json({ message: 'Post fetched.', post: post });
+      res.status(200).json({ message: 'Post fetched.', post: post });
     })
     .catch(err => {
       if (!err.statusCode) {
         err.statusCode = 500;
-        err.message = `Failed to store post id ${postId}`;
+        err.message = `Failed to get post id ${postId}`;
       }
       next(err);
     });
