@@ -2,18 +2,16 @@ const { validationResult } = require('express-validator/check');
 const Post = require('../models/posts');
 
 exports.getPosts = (req, res, next) => {
-  res.status(200).json({
-    posts: [{
-      _id: '1',
-      title: 'First Post',
-      content: 'This is the first post!',
-      imageUrl: 'images/duck.jpg',
-      creator: {
-        name: 'Syed'
-      },
-      createdAt: new Date()
-    }]
-  });
+  Post.find()
+    .then(posts => {
+      res.status(200).json({ message: `Found posts ${posts.length}`, posts: posts });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 404;
+      }
+      next(err);
+    });
 };
 
 exports.createPost = (req, res, next) => {
@@ -45,10 +43,32 @@ exports.createPost = (req, res, next) => {
       });
     })
     .catch(err => {
-      if(!err.statusCode) {
+      if (!err.statusCode) {
         err.statusCode = 500;
       }
 
       next(err); // Go to next error handling middleware - that takes error as first parameter
+    });
+};
+
+exports.getPost = (req, res, next) => {
+  const postId = req.params.postId;
+
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error(`Could not find post by id ${postId}`);
+        error.statusCode = 404;
+        throw error; // this will be caught in the catch block which will pass it on to next error handling middleware using next(err)
+      }
+
+      req.status(200).json({ message: 'Post fetched.', post: post });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+        err.message = `Failed to store post id ${postId}`;
+      }
+      next(err);
     });
 };
