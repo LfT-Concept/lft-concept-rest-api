@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const compression = require('compression');
 
 const feedRoutes = require('./routes/feed');
 
@@ -33,6 +34,11 @@ require('dotenv').config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
 app.use(bodyParser.json()); // Content-Type: application/json
+// Compress responses
+app.use(compression({filter: (req, res) => {
+  if (req.headers['x-no-compression']) { return false; }
+  else { return compression.filter(req, res) }
+}}));
 // File upload using multer
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter}).single('image'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
