@@ -34,7 +34,7 @@ require('dotenv').config();
 
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
 app.use(bodyParser.json()); // Content-Type: application/json
-// Compress responses
+// Compress responses - This module adds a res.flush() method to force the partially-compressed response to be flushed to the client eg. with websockets / server-sent events.
 app.use(compression({filter: (req, res) => {
   if (req.headers['x-no-compression']) { return false; }
   else { return compression.filter(req, res) }
