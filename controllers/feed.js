@@ -4,7 +4,7 @@ const Post = require('../models/posts');
 exports.getPosts = (req, res, next) => {
   Post.find()
     .then(posts => {
-      res.status(200).json({ message: `Found posts ${posts.length}`, posts: posts });
+      res.status(200).json({ message: `Found ${posts.length} post(s)`, posts: posts });
     })
     .catch(err => {
       if (!err.statusCode) {
@@ -42,7 +42,6 @@ exports.createPost = (req, res, next) => {
   post
     .save()
     .then(result => { // then is a Promise like object
-      console.log(result); // created post in db
       // Create a post in db
       res.status(201).json({
         message: 'Post created successfully',
