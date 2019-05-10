@@ -20,9 +20,9 @@ const fileStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || 
-  file.mimetype === 'image/jpg' || 
-  file.mimetype === 'image/jpeg') {
+  if (file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg') {
     cb(null, true);
   } else {
     cb(null, false);
@@ -35,12 +35,14 @@ require('dotenv').config();
 // app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
 app.use(bodyParser.json()); // Content-Type: application/json
 // Compress responses - This module adds a res.flush() method to force the partially-compressed response to be flushed to the client eg. with websockets / server-sent events.
-app.use(compression({filter: (req, res) => {
-  if (req.headers['x-no-compression']) { return false; }
-  else { return compression.filter(req, res) }
-}}));
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) { return false; }
+    else { return compression.filter(req, res) }
+  }
+}));
 // File upload using multer
-app.use(multer({ storage: fileStorage, fileFilter: fileFilter}).single('image'));
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // CORS

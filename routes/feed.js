@@ -10,9 +10,8 @@ const router = express.Router();
 
 // Minify images
 var mininfyImages = async (req, res, next) => {
-  console.log('filepath', req.file.path)
-  const files = await imagemin([`${req.file.path}`], 'images', { plugins: [ imageminJpegtran(), imageminPngquant({quality: '65-80'})]});
-  console.log('Minified files',files);
+  const files = await imagemin([`${req.file.path}`], 'images', { plugins: [imageminJpegtran(), imageminPngquant({ quality: '65-80' })] });
+  console.log('Minified files', files);
   next();
 };
 
@@ -22,9 +21,23 @@ router.get('/posts', feedController.getPosts);
 // POST /feed/posts
 router.post(
   '/posts',
-  [body('title').trim().isLength({ min: 7 }), body('content').trim().isLength({ min: 5 }), mininfyImages],
+  [ // array of middlewares
+    body('title').trim().isLength({ min: 5 }),
+    body('content').trim().isLength({ min: 5 }),
+    mininfyImages
+  ],
   feedController.createPost);
 
+// GET /feed/post/:postId
 router.get('/post/:postId', feedController.getPost);
+
+// PUT /feed/post/:postId
+router.put(
+  '/post/:postId',
+  [
+    body('title').trim().isLength({ min: 5 }),
+    body('content').trim().isLength({ min: 5 })
+  ],
+  feedController.updatePost);
 
 module.exports = router;
