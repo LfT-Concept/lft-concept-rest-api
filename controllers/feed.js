@@ -112,7 +112,7 @@ exports.updatePost = (req, res, next) => {
         throw error;
       }
 
-      if(imageUrl !== post.imageUrl) {
+      if (imageUrl !== post.imageUrl) {
         clearImage(post.imageUrl);
       }
 
@@ -135,5 +135,5 @@ exports.updatePost = (req, res, next) => {
 
 const clearImage = (filePath) => {
   filePath = path.join(__dirname, '..', filePath);
-  fs.unlink(filePath, (err) => console.log(err));
+  fs.unlink(filePath, (err) => { console.log(err) });
 };
