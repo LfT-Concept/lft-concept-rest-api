@@ -11,7 +11,6 @@ const router = express.Router();
 // Minify images
 var mininfyImages = async (req, res, next) => {
   const files = await imagemin([`${req.file.path}`], 'images', { plugins: [imageminJpegtran(), imageminPngquant({ quality: '65-80' })] });
-  console.log('Minified files', files);
   next();
 };
 
