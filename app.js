@@ -66,7 +66,7 @@ app.use((error, req, res, next) => {
   const status = error.statusCode;
   const message = error.message;
   const data = error.data;
-  res.status(error.statusCode).json({ message: message, data: data });
+  res.status(status).json({ message: message, data: data });
 });
 
 app.use('/', (req, res, next) => {
