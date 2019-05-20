@@ -57,7 +57,7 @@ exports.createPost = (req, res, next) => {
     title: title,
     content: content,
     imageUrl: imageUrl,
-    creator: req.userId
+    creator: req.userId // added by auth middleware to req
   });
 
   post
@@ -146,6 +146,12 @@ exports.updatePost = (req, res, next) => {
       post.imageUrl = imageUrl;
       post.content = content;
 
+      if(post.creator.toString() !== req.userId) {
+        const error = new Error('Unauthorised to update this post');
+        error.statusCode = 403;
+        throw error;
+      }
+      
       return post.save();
     })
     .then(result => {
@@ -168,21 +174,30 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      //Check if use is logged in
+      if(post.creator !== req.userId) {
+        const error = new Error('Unauthorised to delete this item');
+        error.statusCode = 403;
+        throw error;
+      }
       clearImage(post.imageUrl);
       return Post.findByIdAndRemove(postId)
     })
     .then(result => {
+      return User.findById(req.userId);
+    })
+    .then(user => {
+      user.posts.pull(postId);
+      return user.save();
+    })
+    .then(result => {
       const message = `Post successfully deleted ${postId}`;
-      console.log(message, result);
       res.status(200).json({ message: message });
     })
     .catch(err => {
-      const error = new Error(`Failed to delete post, id ${postId}`);
-      if (!error.statusCode) {
-        error.statusCode = 500;
+      if (!err.statusCode) {
+        err.statusCode = 500;
       }
-      next(error);
+      next(err);
     });
 };
 
