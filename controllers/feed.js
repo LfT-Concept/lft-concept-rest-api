@@ -28,7 +28,7 @@ exports.getPosts = async (req, res, next) => {
   }
 };
 
-exports.createPost = (req, res, next) => {
+exports.createPost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect');
@@ -45,7 +45,6 @@ exports.createPost = (req, res, next) => {
   const imageUrl = req.file.path;
   const title = req.body.title;
   const content = req.body.content;
-  let creator;
 
   const post = new Post({
     title: title,
@@ -54,30 +53,23 @@ exports.createPost = (req, res, next) => {
     creator: req.userId // added by auth middleware to req
   });
 
-  post
-    .save()
-    .then(result => { // then is a Promise like object
-      return User.findById(req.userId);
-    })
-    .then(user => {
-      creator = user;
-      user.posts.push(post);
-      return user.save();
-    })
-    .then(result => {
-      res.status(201).json({
-        message: 'Post created successfully',
-        post: post,
-        creator: { _id: creator.id, name: creator.name }
-      });
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+  try {
+    post.save(); // think no need to wait on this request but what happens if it errors / fails / takes too long? Rollback? 
+    const user = await User.findById(req.userId);
+    user.posts.push(post);
 
-      next(err); // Go to next error handling middleware - that takes error as first parameter
+    await user.save();
+    res.status(201).json({
+      message: 'Post created successfully',
+      post: post,
+      creator: { _id: user.id, name: user.name }
     });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err); // Go to next error handling middleware - that takes error as first parameter
+  }
 };
 
 exports.getPost = (req, res, next) => {
