@@ -5,33 +5,27 @@ const { validationResult } = require('express-validator/check');
 const Post = require('../models/posts');
 const User = require('../models/user');
 
-exports.getPosts = (req, res, next) => {
+exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
   let totalItems;
+  try {
+    const postCount = Post.find().countDocuments();
+    const filteredPosts = Post.find().skip((currentPage - 1) * perPage).limit(perPage);
+    // Parallel processing
+    const [totalItems, posts] = await Promise.all([postCount, filteredPosts]);
 
-  Post.find().countDocuments()
-    .then(count => {
-      totalItems = count;
-      return Post.find()
-        .skip((currentPage - 1) * perPage)
-        .limit(perPage);
-    })
-    .then(posts => {
-      res
-        .status(200)
-        .json({
-          message: `Found ${posts.length} post(s)`,
-          posts: posts,
-          totalItems: totalItems
-        });
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    res.status(200).json({
+      message: `Found ${posts} post(s)`,
+      posts: posts,
+      totalItems: totalItems
     });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 exports.createPost = (req, res, next) => {
@@ -146,12 +140,12 @@ exports.updatePost = (req, res, next) => {
       post.imageUrl = imageUrl;
       post.content = content;
 
-      if(post.creator.toString() !== req.userId) {
+      if (post.creator.toString() !== req.userId) {
         const error = new Error('Unauthorised to update this post');
         error.statusCode = 403;
         throw error;
       }
-      
+
       return post.save();
     })
     .then(result => {
@@ -174,7 +168,7 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      if(post.creator !== req.userId) {
+      if (post.creator !== req.userId) {
         const error = new Error('Unauthorised to delete this item');
         error.statusCode = 403;
         throw error;
