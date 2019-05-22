@@ -92,7 +92,7 @@ exports.getPost = async (req, res, next) => {
   }
 };
 
-exports.updatePost = (req, res, next) => {
+exports.updatePost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect');
@@ -114,39 +114,35 @@ exports.updatePost = (req, res, next) => {
     throw error;
   }
 
-  Post.findById(postId)
-    .then(post => {
-      if (!post) {
-        const error = new Error(`Could not find post by id ${postId}`);
-        error.statusCode = 404;
-        throw error;
-      }
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      const error = new Error(`Could not find post by id ${postId}`);
+      error.statusCode = 404;
+      throw error;
+    }
+    if (imageUrl !== post.imageUrl) {
+      clearImage(post.imageUrl);
+    }
 
-      if (imageUrl !== post.imageUrl) {
-        clearImage(post.imageUrl);
-      }
+    post.title = title;
+    post.imageUrl = imageUrl;
+    post.content = content;
 
-      post.title = title;
-      post.imageUrl = imageUrl;
-      post.content = content;
+    if (post.creator.toString() !== req.userId) {
+      const error = new Error('Unauthorised to update this post');
+      error.statusCode = 403;
+      throw error;
+    }
 
-      if (post.creator.toString() !== req.userId) {
-        const error = new Error('Unauthorised to update this post');
-        error.statusCode = 403;
-        throw error;
-      }
-
-      return post.save();
-    })
-    .then(result => {
-      res.status(200).json({ message: 'Post updated', post: result })
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
-    });
+    const result = await post.save();
+    res.status(200).json({ message: 'Post updated', post: result });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 exports.deletePost = (req, res, next) => {
