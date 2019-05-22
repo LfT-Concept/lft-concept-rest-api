@@ -72,26 +72,24 @@ exports.createPost = async (req, res, next) => {
   }
 };
 
-exports.getPost = (req, res, next) => {
+exports.getPost = async (req, res, next) => {
   const postId = req.params.postId;
 
-  Post.findById(postId)
-    .then(post => {
-      if (!post) {
-        const error = new Error(`Could not find post by id ${postId}`);
-        error.statusCode = 404;
-        throw error; // this will be caught in the catch block which will pass it on to next error handling middleware using next(err)
-      }
-
-      res.status(200).json({ message: 'Post fetched.', post: post });
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-        err.message = `Failed to get post id ${postId}`;
-      }
-      next(err);
-    });
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      const error = new Error(`Could not find post by id ${postId}`);
+      error.statusCode = 404;
+      throw error; // this will be caught in the catch block which will pass it on to next error handling middleware using next(err)
+    }
+    res.status(200).json({ message: 'Post fetched.', post: post });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+      err.message = `Failed to get post id ${postId}`;
+    }
+    next(err);
+  }
 };
 
 exports.updatePost = (req, res, next) => {
