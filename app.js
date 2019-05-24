@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const compression = require('compression');
 const uuidv1 = require('uuid/v1');
+const morgan = require('morgan');
+const helmet = require('helmet');
 
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
@@ -35,8 +37,8 @@ const fileFilter = (req, file, cb) => {
 // Load env config
 require('dotenv').config();
 
-// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
-app.use(bodyParser.json()); // Content-Type: application/json
+app.use(morgan()); //access log streams
+app.use(helmet());
 // Compress responses - This module adds a res.flush() method to force the partially-compressed response to be flushed to the client eg. with websockets / server-sent events.
 app.use(compression({
   filter: (req, res) => {
@@ -44,6 +46,8 @@ app.use(compression({
     else { return compression.filter(req, res) }
   }
 }));
+// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded </form>
+app.use(bodyParser.json()); // Content-Type: application/json
 // File upload using multer
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
