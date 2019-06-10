@@ -4,6 +4,7 @@ const path = require('path');
 const { validationResult } = require('express-validator/check');
 const Post = require('../models/posts');
 const User = require('../models/user');
+const io = require('../socket');
 
 exports.getPosts = async (req, res, next) => {
   try {
@@ -58,6 +59,7 @@ exports.createPost = async (req, res, next) => {
     user.posts.push(post);
 
     await user.save();
+    io.getIO().emit('posts', { action: 'create', post: post});
     res.status(201).json({
       message: 'Post created successfully',
       post: post,
